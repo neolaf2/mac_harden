@@ -26,7 +26,7 @@ fi
 
 # Show help
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  cat <<'EOF'
+  cat << 'HELPEOF'
 askcmd - Natural language to Unix command (quiet mode)
 
 Usage:
@@ -53,7 +53,7 @@ Tips:
   - Pipe to pbcopy: askcmd "..." | pbcopy
   - Execute directly: $(askcmd "...")
   - Review before running dangerous commands!
-EOF
+HELPEOF
   exit 0
 fi
 
@@ -64,8 +64,8 @@ if [[ "${1:-}" == "--history" ]]; then
     find "$LOG_DIR" -name "*.md" -type f -mtime -7 | sort -r | head -20 | while read -r f; do
       echo "---"
       echo "File: $f"
-      grep -A1 "^Query:" "$f" | tail -1
-      grep -A1 "^Claude response:" "$f" | tail -1
+      grep -A1 "Query:" "$f" 2>/dev/null | tail -1 || true
+      grep -A1 "Response" "$f" 2>/dev/null | tail -1 || true
     done
   else
     echo "No history found"
@@ -99,11 +99,10 @@ mkdir -p "$LOG_DIR"
 TS=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$LOG_DIR/$TS.md"
 
-PROMPT=$(cat <<'EOF'
-You are a Unix command-line expert.
+PROMPT='You are a Unix command-line expert.
 
 Task:
-- Convert the user's request into a SINGLE correct Unix shell command.
+- Convert the user request into a SINGLE correct Unix shell command.
 - Output ONLY the command.
 - NO explanations.
 - NO markdown.
@@ -118,9 +117,7 @@ Assume:
 
 If multiple commands are required, chain with && or use subshells.
 
-User request:
-EOF
-)
+User request:'
 
 # Run Claude
 if ! RESPONSE=$(claude -p "$PROMPT $QUERY" 2>/dev/null); then
@@ -132,22 +129,20 @@ fi
 RESPONSE=$(echo "$RESPONSE" | sed 's/^```[a-z]*//; s/```$//; s/^[[:space:]]*//; s/[[:space:]]*$//' | head -1)
 
 # Save full trace (hidden from shell)
-cat > "$LOG_FILE" <<EOF
-# askcmd session
-
-**Time:** $(date)
-**Query:** $QUERY
-
-## Prompt
-
-$PROMPT
-
-## Claude Response
-
-\`\`\`bash
-$RESPONSE
-\`\`\`
-EOF
+{
+  echo "# askcmd session"
+  echo ""
+  echo "**Time:** $(date)"
+  echo "**Query:** $QUERY"
+  echo ""
+  echo "## Prompt"
+  echo ""
+  echo "$PROMPT"
+  echo ""
+  echo "## Claude Response"
+  echo ""
+  echo "$RESPONSE"
+} > "$LOG_FILE"
 
 # Output ONLY the command to stdout
 echo "$RESPONSE"
