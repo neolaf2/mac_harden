@@ -1,0 +1,17 @@
+# Log files
+*.log
+
+# Config files
+*.conf
+*.config
+*.cfg
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+
+# macOS
+.DS_Store
