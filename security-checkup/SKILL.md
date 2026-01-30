@@ -34,13 +34,13 @@ Run comprehensive security checks using the bundled scripts:
 
 ```bash
 # Full system audit (requires sudo)
-sudo scripts/mac_harden.sh audit
+sudo mac_harden audit
 
 # Process and resource audit
-scripts/process_audit.sh
+process_audit
 
 # Check for suspicious launch agents/daemons
-scripts/cleanup_unwanted_apps.sh
+cleanup_apps
 ```
 
 **Output Analysis:** After running audits, summarize:
@@ -55,10 +55,10 @@ Analyze active network connections and identify potentially suspicious traffic:
 
 ```bash
 # Quick listening ports check
-sudo scripts/mac_harden.sh ports
+sudo mac_harden ports
 
 # Outbound connection audit
-sudo scripts/mac_harden.sh audit-outbound
+sudo mac_harden audit-outbound
 
 # Detailed network state
 netstat -an | grep ESTABLISHED
@@ -101,16 +101,16 @@ Apply tiered hardening based on user needs:
 
 ```bash
 # Level 1: Minimal (close obvious holes)
-sudo scripts/mac_harden.sh harden minimal
+sudo mac_harden harden minimal
 
 # Level 2: Developer (recommended for dev machines)
-sudo scripts/mac_harden.sh harden dev
+sudo mac_harden harden dev
 
 # Level 3: Secure (for sensitive data)
-sudo scripts/mac_harden.sh harden secure
+sudo mac_harden harden secure
 
 # Level 4: Paranoid (maximum lockdown)
-sudo scripts/mac_harden.sh harden paranoid
+sudo mac_harden harden paranoid
 ```
 
 **Hardening Level Selection:**
@@ -123,7 +123,7 @@ sudo scripts/mac_harden.sh harden paranoid
 
 **Always run audit before and after:**
 ```bash
-sudo scripts/mac_harden.sh full [level]
+sudo mac_harden full [level]
 ```
 
 ## Step 5: Investigation Mode
@@ -170,7 +170,7 @@ sudo mv /path/to/suspicious /var/quarantine/
 ### 4. Verify and Monitor
 ```bash
 # Re-run security audit
-sudo scripts/mac_harden.sh audit
+sudo mac_harden audit
 
 # Monitor for recurrence
 sudo fs_usage -f network
@@ -203,11 +203,11 @@ sudo lsof -i :443 | cat_claude "analyze these HTTPS connections"
 
 | Script | Purpose | Requires Sudo |
 |--------|---------|---------------|
-| `mac_harden.sh` | Security audit and hardening | Yes |
-| `process_audit.sh` | Process/memory/CPU analysis | No |
-| `cleanup_unwanted_apps.sh` | Interactive daemon cleanup | Yes |
-| `cat_claude.sh` | AI analysis of command output | No |
-| `askcmd.sh` | Natural language to command | No |
+| `mac_harden` | Security audit and hardening | Yes |
+| `process_audit` | Process/memory/CPU analysis | No |
+| `cleanup_apps` | Interactive daemon cleanup | Yes |
+| `cat_claude` | AI analysis of command output | No |
+| `askcmd` | Natural language to command | No |
 
 ## Common Investigation Patterns
 
@@ -225,7 +225,7 @@ sudo lsof -i :443 | cat_claude "analyze these HTTPS connections"
 4. If malicious: kill process, block IP, investigate persistence
 
 ### High Resource Usage
-1. `scripts/process_audit.sh` - Get overview
+1. `process_audit` - Get overview
 2. Identify top consumers
 3. Check if legitimate (browser, IDE, Docker, etc.)
 4. Investigate unknown heavy processes
