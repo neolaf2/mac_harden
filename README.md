@@ -12,6 +12,7 @@ This toolkit provides:
 - **`process_audit`** - Process, CPU, and memory analysis
 - **`cleanup_apps`** - Interactive removal of unwanted applications and daemons
 - **`cat_claude`** - Pipe command output to Claude for AI analysis
+- **`askcmd`** - Natural language to Unix command (quiet mode)
 
 ## Quick Start
 
@@ -30,6 +31,9 @@ sudo cleanup_apps
 
 # AI-assisted analysis
 opencode --help | cat_claude
+
+# Natural language to command
+askcmd "find all .env files"
 ```
 
 ---
@@ -330,6 +334,82 @@ Analyze this output and explain what it shows
 
 ---
 
+## askcmd
+
+Natural language to Unix command converter. Outputs only the command - all reasoning is logged silently.
+
+### Usage
+
+```bash
+askcmd "description of what you want to do"
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--version, -v` | Show version |
+| `--help, -h` | Show help |
+| `--history` | Show recent command history |
+| `--log` | Show path to latest log file |
+
+### Examples
+
+```bash
+# Find files
+askcmd "find all .env files under the current directory"
+# → find . -name ".env" -type f
+
+# List recent files
+askcmd "list all python files modified in the last 24 hours"
+# → find . -name "*.py" -mtime -1 -type f
+
+# Disk usage
+askcmd "show disk usage sorted by size"
+# → du -sh * | sort -h
+
+# Process management
+askcmd "kill all processes matching nginx"
+# → pkill -f nginx
+
+# Copy to clipboard
+askcmd "compress all jpg files" | pbcopy
+
+# Execute directly (use with caution!)
+$(askcmd "list hidden files in home directory")
+```
+
+### How It Works
+
+1. You type a natural language description
+2. Claude generates ONLY the command (no explanation)
+3. Command prints to stdout
+4. Full conversation logged to `~/.askcmd/history/YYYY-MM/`
+
+### Log Location
+
+```
+~/.askcmd/history/
+  └── 2026-01/
+      ├── 20260130_094512.md
+      ├── 20260130_101233.md
+      └── ...
+```
+
+Each log contains:
+- Your natural language request
+- The full prompt sent to Claude
+- Claude's response
+
+### Tips
+
+- Review commands before running destructive operations
+- Use `| pbcopy` to copy to clipboard
+- Check `--history` to recall recent commands
+- Logs provide audit trail and training data
+
+---
+
 ## Dev Tools Management
 
 Quick commands to start/stop development tools to save resources.
@@ -471,6 +551,7 @@ sudo ./install.sh
 mac_harden --version
 process_audit --version
 cat_claude --version
+askcmd --version
 ```
 
 ### Option 2: Run from local directory
@@ -480,6 +561,7 @@ chmod +x *.sh
 sudo ./mac_harden.sh audit
 ./process_audit.sh
 ./cat_claude.sh --help
+./askcmd.sh "find large files"
 ```
 
 ### Why /usr/local/bin?
@@ -500,7 +582,8 @@ mac-harden/
 ├── mac_harden.sh              # Main security audit & hardening script
 ├── process_audit.sh           # Process & resource analysis script
 ├── cleanup_unwanted_apps.sh   # Interactive cleanup script
-└── cat_claude.sh              # Pipe output to Claude for AI analysis
+├── cat_claude.sh              # Pipe output to Claude for AI analysis
+└── askcmd.sh                  # Natural language to Unix command
 ```
 
 ---
@@ -530,6 +613,10 @@ MIT License - Feel free to use, modify, and distribute.
 ---
 
 ## Changelog
+
+### v2.2.0
+- Added `askcmd` - natural language to Unix command (quiet mode)
+- Logs full conversation history to `~/.askcmd/history/`
 
 ### v2.1.0
 - Added `cat_claude` - pipe command output to Claude for AI analysis

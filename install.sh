@@ -3,7 +3,8 @@
 # ============================================================================
 # INSTALL SCRIPT - Mac Hardening & Security Tools
 # ============================================================================
-# Installs mac_harden, process_audit, cleanup_apps, and cat_claude to /usr/local/bin
+# Installs mac_harden, process_audit, cleanup_apps, cat_claude, and askcmd
+# to /usr/local/bin
 #
 # Usage: sudo ./install.sh
 # ============================================================================
@@ -80,6 +81,16 @@ else
     echo -e "${YELLOW}⚠ cleanup_unwanted_apps.sh not found - skipping${NC}"
 fi
 
+# Install askcmd
+if [ -f "$SCRIPT_DIR/askcmd.sh" ]; then
+    cp "$SCRIPT_DIR/askcmd.sh" "$INSTALL_DIR/askcmd"
+    chmod 755 "$INSTALL_DIR/askcmd"
+    chown root:wheel "$INSTALL_DIR/askcmd"
+    success "Installed askcmd to $INSTALL_DIR/askcmd"
+else
+    echo -e "${YELLOW}⚠ askcmd.sh not found - skipping${NC}"
+fi
+
 echo ""
 echo "============================================"
 echo "  Installation Complete"
@@ -91,6 +102,7 @@ info "Verify installation:"
 info "  mac_harden --version"
 info "  process_audit --version"
 info "  cat_claude --version"
+info "  askcmd --version"
 info "  cleanup_apps (interactive)"
 info ""
 info "Quick start:"
@@ -99,4 +111,5 @@ info "  sudo mac_harden i"
 info "  process_audit"
 info "  sudo cleanup_apps"
 info "  opencode --help | cat_claude"
+info "  askcmd \"find all .env files\""
 echo ""
