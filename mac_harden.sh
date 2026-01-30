@@ -19,7 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Logging
-LOG_FILE="$(pwd)/mac_security_audit_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="${PWD%/}/mac_security_audit_$(date +%Y%m%d_%H%M%S).log"
 
 log() {
     echo -e "$1" | tee -a "$LOG_FILE"
