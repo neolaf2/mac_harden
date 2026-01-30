@@ -1,6 +1,6 @@
-# Mac Hardening & Process Audit Tools
+# Mac Hardening & Security Tools
 
-A comprehensive suite of shell scripts for macOS security hardening, process auditing, and development environment management.
+A comprehensive suite of shell scripts for macOS security hardening, process auditing, cleanup, and AI-assisted analysis.
 
 **Authors:** Richard Tong, Claude 4.5, ChatGPT 5.2
 
@@ -10,21 +10,26 @@ This toolkit provides:
 
 - **`mac_harden`** - Security audit and tiered hardening for macOS
 - **`process_audit`** - Process, CPU, and memory analysis
-- **`cleanup_unwanted_apps.sh`** - Remove specific unwanted applications and daemons
+- **`cleanup_apps`** - Interactive removal of unwanted applications and daemons
+- **`cat_claude`** - Pipe command output to Claude for AI analysis
 
 ## Quick Start
 
 ```bash
-# Install tools
-sudo cp mac_harden.sh /usr/local/bin/mac_harden
-sudo cp process_audit.sh /usr/local/bin/process_audit
-sudo chmod 755 /usr/local/bin/mac_harden /usr/local/bin/process_audit
+# Install all tools
+sudo ./install.sh
 
 # Run security audit
 sudo mac_harden audit
 
 # Run process audit
 process_audit
+
+# Interactive cleanup
+sudo cleanup_apps
+
+# AI-assisted analysis
+opencode --help | cat_claude
 ```
 
 ---
@@ -203,6 +208,128 @@ DEV TOOLS STATUS
 
 ---
 
+## cleanup_apps
+
+Interactive tool for auditing and removing unwanted applications, launch agents, and daemons.
+
+### Usage
+
+```bash
+sudo cleanup_apps
+```
+
+### What It Scans
+
+- **User Launch Agents** - `~/Library/LaunchAgents/*.plist`
+- **System Launch Agents** - `/Library/LaunchAgents/*.plist` (non-Apple)
+- **System Launch Daemons** - `/Library/LaunchDaemons/*.plist` (non-Apple)
+- **Applications** - `/Applications/*.app` (non-Apple)
+
+### Features
+
+- Interactive prompts for each item (y/N/q)
+- Automatically skips Apple system items
+- Unloads daemons/agents before removal
+- Cleans up associated config files for removed apps
+- Summary of removed vs skipped items
+
+### Sample Output
+
+```
+=== User Launch Agents (~/.Library/LaunchAgents) ===
+
+Found User Agent: com.spotify.webhelper
+  Path: /Users/rich/Library/LaunchAgents/com.spotify.webhelper.plist
+  Remove this item? (y/N/q to quit): y
+✓ Removed com.spotify.webhelper
+
+=== Cleanup Summary ===
+
+  Removed: 3 items
+  Skipped: 5 items
+
+✓ Cleanup complete!
+```
+
+---
+
+## cat_claude
+
+Pipe any command output to Claude for AI-powered analysis. Outputs markdown to stdout (pipe-friendly) and saves a copy to a file.
+
+### Usage
+
+```bash
+# Pipe command output
+ANY_COMMAND | cat_claude [output.md] [prompt]
+
+# Or use --cmd flag
+cat_claude --cmd "command" [output.md] [prompt]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--cmd "command"` | Run command and analyze its output |
+| `--version, -v` | Show version |
+| `--help, -h` | Show help |
+
+### Examples
+
+```bash
+# Basic usage - auto-generates filename from command
+opencode --help | cat_claude
+# → Creates: opencode--help-analysis.md
+
+# Custom output file
+ls -la | cat_claude ls_analysis.md
+
+# Custom prompt
+git diff | cat_claude review.md "review these changes for bugs"
+
+# Using --cmd flag (most reliable for filename detection)
+cat_claude --cmd "docker ps -a"
+
+# Pipe-friendly - append to log file
+opencode --help | cat_claude >> my_shell_analysis_log.md
+git status | cat_claude >> my_shell_analysis_log.md
+```
+
+### Output Format
+
+```markdown
+# Command → Claude Analysis
+
+**Command:** `opencode --help`
+**Generated:** 2024-01-15 14:30:00
+
+## Prompt
+\`\`\`text
+Analyze this output and explain what it shows
+\`\`\`
+
+## Input
+\`\`\`
+[original command output]
+\`\`\`
+
+## Analysis
+
+[Claude's analysis]
+
+---
+```
+
+### Notes
+
+- Full output goes to stdout (pipe-friendly)
+- A copy is saved to the `.md` file
+- Status messages go to stderr (won't pollute pipes)
+- Default filename is generated from the command name
+
+---
+
 ## Dev Tools Management
 
 Quick commands to start/stop development tools to save resources.
@@ -330,30 +457,29 @@ This additionally:
 
 ## Installation
 
-### Option 1: Install to /usr/local/bin (Recommended)
+### Option 1: Use the Installer (Recommended)
 
 ```bash
 # Clone or download the scripts
 git clone https://github.com/yourusername/mac-harden.git
 cd mac-harden
 
-# Install
-sudo cp mac_harden.sh /usr/local/bin/mac_harden
-sudo cp process_audit.sh /usr/local/bin/process_audit
-sudo chmod 755 /usr/local/bin/mac_harden
-sudo chmod 755 /usr/local/bin/process_audit
+# Install all tools
+sudo ./install.sh
 
 # Verify
 mac_harden --version
 process_audit --version
+cat_claude --version
 ```
 
 ### Option 2: Run from local directory
 
 ```bash
-chmod +x mac_harden.sh process_audit.sh
+chmod +x *.sh
 sudo ./mac_harden.sh audit
 ./process_audit.sh
+./cat_claude.sh --help
 ```
 
 ### Why /usr/local/bin?
@@ -370,9 +496,11 @@ sudo ./mac_harden.sh audit
 ```
 mac-harden/
 ├── README.md
-├── mac_harden.sh          # Main security audit & hardening script
-├── process_audit.sh       # Process & resource analysis script
-└── cleanup_unwanted_apps.sh  # Example cleanup script (customize as needed)
+├── install.sh                 # Installer script
+├── mac_harden.sh              # Main security audit & hardening script
+├── process_audit.sh           # Process & resource analysis script
+├── cleanup_unwanted_apps.sh   # Interactive cleanup script
+└── cat_claude.sh              # Pipe output to Claude for AI analysis
 ```
 
 ---
@@ -382,6 +510,7 @@ mac-harden/
 - macOS 12+ (Monterey or later)
 - Admin/sudo access for hardening operations
 - Homebrew (optional, for dev tools management)
+- Claude Code CLI (for `cat_claude` - install via `npm install -g @anthropic-ai/claude-code`)
 
 ---
 
@@ -401,6 +530,12 @@ MIT License - Feel free to use, modify, and distribute.
 ---
 
 ## Changelog
+
+### v2.1.0
+- Added `cat_claude` - pipe command output to Claude for AI analysis
+- Added `cleanup_apps` to installer
+- Added `install.sh` for easy installation
+- Updated documentation
 
 ### v2.0.0
 - Added tiered hardening levels (minimal, dev, secure, paranoid)
