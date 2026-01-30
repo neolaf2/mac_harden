@@ -328,9 +328,9 @@ Analyze this output and explain what it shows
 ### Notes
 
 - Full output goes to stdout (pipe-friendly)
-- A copy is saved to the `.md` file
+- A copy is saved to `~/.mac_harden/stm/cat_claude/YYYY-MM/`
 - Status messages go to stderr (won't pollute pipes)
-- Default filename is generated from the command name
+- Filename includes timestamp + command name
 
 ---
 
@@ -384,12 +384,12 @@ $(askcmd "list hidden files in home directory")
 1. You type a natural language description
 2. Claude generates ONLY the command (no explanation)
 3. Command prints to stdout
-4. Full conversation logged to `~/.askcmd/history/YYYY-MM/`
+4. Full conversation logged to `~/.mac_harden/stm/askcmd/YYYY-MM/`
 
 ### Log Location
 
 ```
-~/.askcmd/history/
+~/.mac_harden/stm/askcmd/
   └── 2026-01/
       ├── 20260130_094512.md
       ├── 20260130_101233.md
@@ -557,11 +557,11 @@ askcmd --version
 ### Option 2: Run from local directory
 
 ```bash
-chmod +x *.sh
-sudo ./mac_harden.sh audit
-./process_audit.sh
-./cat_claude.sh --help
-./askcmd.sh "find large files"
+chmod +x scripts/*.sh
+sudo ./scripts/mac_harden.sh audit
+./scripts/process_audit.sh
+./scripts/cat_claude.sh --help
+./scripts/askcmd.sh "find large files"
 ```
 
 ### Why /usr/local/bin?
@@ -577,13 +577,35 @@ sudo ./mac_harden.sh audit
 
 ```
 mac-harden/
-├── README.md
-├── install.sh                 # Installer script
-├── mac_harden.sh              # Main security audit & hardening script
-├── process_audit.sh           # Process & resource analysis script
-├── cleanup_unwanted_apps.sh   # Interactive cleanup script
-├── cat_claude.sh              # Pipe output to Claude for AI analysis
-└── askcmd.sh                  # Natural language to Unix command
+├── README.md                          # Documentation
+├── install.sh                         # Installer script
+├── scripts/                           # All executable scripts
+│   ├── mac_harden.sh                  # Security audit & hardening
+│   ├── process_audit.sh               # Process & resource analysis
+│   ├── cleanup_unwanted_apps.sh       # Interactive cleanup
+│   ├── cat_claude.sh                  # Pipe output to Claude
+│   └── askcmd.sh                      # Natural language to command
+├── stm/                               # Short-term memory (logs)
+│   ├── cat_claude/                    # cat_claude analysis logs
+│   └── askcmd/                        # askcmd command logs
+└── examples/                          # Example outputs
+    ├── sample_logs/                   # Sample log files
+    └── claude_analysis.md             # Example analysis output
+```
+
+### Log Storage
+
+All logs are stored in `~/.mac_harden/stm/` (short-term memory):
+
+```
+~/.mac_harden/
+└── stm/
+    ├── cat_claude/
+    │   └── 2026-01/
+    │       └── 20260130_094512_opencode--help.md
+    └── askcmd/
+        └── 2026-01/
+            └── 20260130_101233.md
 ```
 
 ---
@@ -614,9 +636,15 @@ MIT License - Feel free to use, modify, and distribute.
 
 ## Changelog
 
+### v2.3.0
+- Refactored to skill directory structure
+- Scripts moved to `scripts/` subdirectory
+- Logs consolidated to `~/.mac_harden/stm/` (short-term memory)
+- Added `examples/` directory with sample outputs
+
 ### v2.2.0
 - Added `askcmd` - natural language to Unix command (quiet mode)
-- Logs full conversation history to `~/.askcmd/history/`
+- Logs full conversation history
 
 ### v2.1.0
 - Added `cat_claude` - pipe command output to Claude for AI analysis

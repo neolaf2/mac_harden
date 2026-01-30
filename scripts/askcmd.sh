@@ -10,7 +10,7 @@
 #
 # Output:
 #   - Prints ONLY the command to stdout
-#   - Full conversation logged to ~/.askcmd/history/
+#   - Full conversation logged to ~/.mac_harden/stm/askcmd/
 #
 # ============================================================================
 
@@ -47,7 +47,7 @@ Examples:
 
 Output:
   - Prints ONLY the executable command to stdout
-  - Full reasoning is logged to ~/.askcmd/history/YYYY-MM/
+  - Full reasoning is logged to ~/.mac_harden/stm/askcmd/YYYY-MM/
 
 Tips:
   - Pipe to pbcopy: askcmd "..." | pbcopy
@@ -59,7 +59,7 @@ fi
 
 # Show history
 if [[ "${1:-}" == "--history" ]]; then
-  LOG_DIR="$HOME/.askcmd/history"
+  LOG_DIR="$HOME/.mac_harden/stm/askcmd"
   if [[ -d "$LOG_DIR" ]]; then
     find "$LOG_DIR" -name "*.md" -type f -mtime -7 | sort -r | head -20 | while read -r f; do
       echo "---"
@@ -75,7 +75,7 @@ fi
 
 # Show latest log path
 if [[ "${1:-}" == "--log" ]]; then
-  LOG_DIR="$HOME/.askcmd/history"
+  LOG_DIR="$HOME/.mac_harden/stm/askcmd"
   if [[ -d "$LOG_DIR" ]]; then
     find "$LOG_DIR" -name "*.md" -type f | sort -r | head -1
   else
@@ -93,7 +93,7 @@ if [[ -z "$QUERY" ]]; then
 fi
 
 # Log directory (time-based)
-LOG_DIR="$HOME/.askcmd/history/$(date +%Y-%m)"
+LOG_DIR="$HOME/.mac_harden/stm/askcmd/$(date +%Y-%m)"
 mkdir -p "$LOG_DIR"
 
 TS=$(date +"%Y%m%d_%H%M%S")

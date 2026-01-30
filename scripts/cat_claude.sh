@@ -17,7 +17,7 @@
 #   opencode --help | cat_claude >> my_shell_analysis_log.md
 #
 # History:
-#   All analyses saved to ~/.cat_claude/history/YYYY-MM/
+#   All analyses saved to ~/.mac_harden/stm/cat_claude/YYYY-MM/
 #
 # Environment:
 #   CAT_CLAUDE_PROMPT - Override default prompt
@@ -67,7 +67,7 @@ Pipe-friendly (appends to local log):
 
 Output:
   - Full markdown output goes to stdout (pipe-friendly)
-  - A copy is saved to ~/.cat_claude/history/YYYY-MM/
+  - A copy is saved to ~/.mac_harden/stm/cat_claude/YYYY-MM/
   - Status messages go to stderr
 
 Default prompt:
@@ -78,7 +78,7 @@ fi
 
 # Show history
 if [[ "${1:-}" == "--history" ]]; then
-  HIST_DIR="$HOME/.cat_claude/history"
+  HIST_DIR="$HOME/.mac_harden/stm/cat_claude"
   if [[ -d "$HIST_DIR" ]]; then
     find "$HIST_DIR" -name "*.md" -type f -mtime -7 | sort -r | head -20 | while read -r f; do
       echo "---"
@@ -94,7 +94,7 @@ fi
 
 # Show latest log path
 if [[ "${1:-}" == "--log" ]]; then
-  HIST_DIR="$HOME/.cat_claude/history"
+  HIST_DIR="$HOME/.mac_harden/stm/cat_claude"
   if [[ -d "$HIST_DIR" ]]; then
     find "$HIST_DIR" -name "*.md" -type f | sort -r | head -1
   else
@@ -144,7 +144,7 @@ if [[ ! -s "$TMP_INPUT" ]]; then
 fi
 
 # History directory (time-based)
-HIST_DIR="$HOME/.cat_claude/history/$(date +%Y-%m)"
+HIST_DIR="$HOME/.mac_harden/stm/cat_claude/$(date +%Y-%m)"
 mkdir -p "$HIST_DIR"
 
 # Generate filename from command
