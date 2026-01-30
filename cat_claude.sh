@@ -17,11 +17,17 @@
 # Pipe-friendly:
 #   opencode --help | cat_claude >> my_shell_analysis_log.md
 #
+# Environment:
+#   CAT_CLAUDE_PROMPT - Override default prompt
+#
 # ============================================================================
 
 set -euo pipefail
 
-VERSION="1.0.0"
+VERSION="1.1.0"
+
+# Default prompt (can be overridden via env var or argument)
+DEFAULT_PROMPT="Analyze this output and explain what it shows. Ignore ASCII art, banners, and trivial or non-essential decorative elements. Focus on the substantive content and functionality."
 
 # Show version
 if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
@@ -43,10 +49,14 @@ Options:
   --version, -v     Show version
   --help, -h        Show this help
 
+Environment:
+  CAT_CLAUDE_PROMPT   Override default prompt for all invocations
+                      Example: export CAT_CLAUDE_PROMPT="summarize briefly"
+
 Examples:
   opencode --help | cat_claude
   ls -la | cat_claude ls_analysis.md
-  git diff | cat_claude review.md "review these changes"
+  git diff | cat_claude review.md "review these changes for bugs"
   cat_claude --cmd "docker ps -a"
 
 Pipe-friendly (appends to log):
@@ -56,6 +66,9 @@ Output:
   - Full markdown output goes to stdout (pipe-friendly)
   - A copy is saved to the .md file
   - Status messages go to stderr
+
+Default prompt:
+  $DEFAULT_PROMPT
 EOF
   exit 0
 fi
@@ -116,7 +129,7 @@ generate_filename() {
 }
 
 OUT="${1:-$(generate_filename "$CMD")}"
-PROMPT="${2:-Analyze this output and explain what it shows}"
+PROMPT="${2:-${CAT_CLAUDE_PROMPT:-$DEFAULT_PROMPT}}"
 
 # Send captured input to Claude (status to stderr)
 echo "Analyzing with Claude..." >&2
