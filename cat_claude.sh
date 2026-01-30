@@ -5,17 +5,19 @@
 # ============================================================================
 #
 # Usage:
-#   ANY_COMMAND | cat_claude [output.md] [prompt]
-#   cat_claude --cmd "command" [output.md] [prompt]
+#   ANY_COMMAND | cat_claude [prompt]
+#   cat_claude --cmd "command" [prompt]
 #
 # Example:
 #   opencode --help | cat_claude
-#   ls -la | cat_claude ls_analysis.md
-#   git diff | cat_claude review.md "review these changes"
+#   git diff | cat_claude "review these changes"
 #   cat_claude --cmd "opencode --help"
 #
 # Pipe-friendly:
 #   opencode --help | cat_claude >> my_shell_analysis_log.md
+#
+# History:
+#   All analyses saved to ~/.cat_claude/history/YYYY-MM/
 #
 # Environment:
 #   CAT_CLAUDE_PROMPT - Override default prompt
@@ -24,7 +26,7 @@
 
 set -euo pipefail
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 
 # Default prompt (can be overridden via env var or argument)
 DEFAULT_PROMPT="Analyze this output and explain what it shows. Ignore ASCII art, banners, and trivial or non-essential decorative elements. Focus on the substantive content and functionality."
@@ -37,15 +39,17 @@ fi
 
 # Show help
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  cat <<EOF
+  cat << HELPEOF
 cat_claude - Pipe command output to Claude for analysis
 
 Usage:
-  ANY_COMMAND | cat_claude [output.md] [prompt]
-  cat_claude --cmd "command" [output.md] [prompt]
+  ANY_COMMAND | cat_claude [prompt]
+  cat_claude --cmd "command" [prompt]
 
 Options:
   --cmd "command"   Run command and analyze its output
+  --history         Show recent analysis history
+  --log             Show path to latest log file
   --version, -v     Show version
   --help, -h        Show this help
 
@@ -55,21 +59,47 @@ Environment:
 
 Examples:
   opencode --help | cat_claude
-  ls -la | cat_claude ls_analysis.md
-  git diff | cat_claude review.md "review these changes for bugs"
+  git diff | cat_claude "review these changes for bugs"
   cat_claude --cmd "docker ps -a"
 
-Pipe-friendly (appends to log):
+Pipe-friendly (appends to local log):
   opencode --help | cat_claude >> my_shell_analysis_log.md
 
 Output:
   - Full markdown output goes to stdout (pipe-friendly)
-  - A copy is saved to the .md file
+  - A copy is saved to ~/.cat_claude/history/YYYY-MM/
   - Status messages go to stderr
 
 Default prompt:
   $DEFAULT_PROMPT
-EOF
+HELPEOF
+  exit 0
+fi
+
+# Show history
+if [[ "${1:-}" == "--history" ]]; then
+  HIST_DIR="$HOME/.cat_claude/history"
+  if [[ -d "$HIST_DIR" ]]; then
+    find "$HIST_DIR" -name "*.md" -type f -mtime -7 | sort -r | head -20 | while read -r f; do
+      echo "---"
+      echo "File: $f"
+      grep "^\*\*Command:\*\*" "$f" 2>/dev/null | head -1 || true
+      grep "^\*\*Generated:\*\*" "$f" 2>/dev/null | head -1 || true
+    done
+  else
+    echo "No history found"
+  fi
+  exit 0
+fi
+
+# Show latest log path
+if [[ "${1:-}" == "--log" ]]; then
+  HIST_DIR="$HOME/.cat_claude/history"
+  if [[ -d "$HIST_DIR" ]]; then
+    find "$HIST_DIR" -name "*.md" -type f | sort -r | head -1
+  else
+    echo "No logs found"
+  fi
   exit 0
 fi
 
@@ -113,23 +143,29 @@ if [[ ! -s "$TMP_INPUT" ]]; then
   exit 1
 fi
 
-# Generate default filename from command
+# History directory (time-based)
+HIST_DIR="$HOME/.cat_claude/history/$(date +%Y-%m)"
+mkdir -p "$HIST_DIR"
+
+# Generate filename from command
 generate_filename() {
   local cmd="$1"
+  local ts
+  ts=$(date +"%Y%m%d_%H%M%S")
   if [[ -z "$cmd" || "$cmd" == "-"* ]]; then
-    echo "claude_analysis.md"
+    echo "${ts}_analysis.md"
   else
     # Extract just the command part (before any pipe to this script)
     cmd=$(echo "$cmd" | sed 's/|.*//' | xargs)
     # Replace spaces and special chars with dashes, lowercase
     local base
-    base=$(echo "${cmd}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g' | head -c 100)
-    echo "${base}-analysis.md"
+    base=$(echo "${cmd}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g' | head -c 60)
+    echo "${ts}_${base}.md"
   fi
 }
 
-OUT="${1:-$(generate_filename "$CMD")}"
-PROMPT="${2:-${CAT_CLAUDE_PROMPT:-$DEFAULT_PROMPT}}"
+HIST_FILE="$HIST_DIR/$(generate_filename "$CMD")"
+PROMPT="${1:-${CAT_CLAUDE_PROMPT:-$DEFAULT_PROMPT}}"
 
 # Send captured input to Claude (status to stderr)
 echo "Analyzing with Claude..." >&2
@@ -168,6 +204,6 @@ EOF
 # Output to stdout (pipe-friendly)
 echo "$OUTPUT"
 
-# Save copy to file (status to stderr)
-echo "$OUTPUT" > "$OUT"
-echo "Saved to: $OUT" >&2
+# Save copy to history (status to stderr)
+echo "$OUTPUT" > "$HIST_FILE"
+echo "Saved to: $HIST_FILE" >&2
